@@ -6,25 +6,34 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.Toast;
+import android.widget.EditText;
+import android.util.*;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.io.IOException;
+import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 public class MainActivity extends AppCompatActivity {
-
     public boolean estConnecte = false;
-    public static Socket sockCli = null;
+
+    private EditText nomEditText;
+    private EditText motDePasseEditText;
+    private CheckBox nouveauClientCheckbox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+        Log.d("MainActivity", "onCreate executed");
+
+        nomEditText = findViewById(R.id.nomEditText);
+        motDePasseEditText = findViewById(R.id.motDePasseEditText);
+        nouveauClientCheckbox = findViewById(R.id.nouveauClientCheckBox);
         Button loginButton = findViewById(R.id.loginButton);
 
         loginButton.setOnClickListener(new View.OnClickListener() {
@@ -32,106 +41,138 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 // Lors d'un clic sur le bouton login, établir la connexion avec le serveur
                 new EtablissementConnection().execute();
-
             }
         });
     }
 
-    private class EtablissementConnection extends AsyncTask<Void, Void, Socket> {
+    private class EtablissementConnection extends AsyncTask<Void, Void, String> {
+        public String reponse;
+        private String user;
+        private String mdp;
+        private boolean EstNouveau;
 
-        private static final String SERVEUR_IP = "192.168.100.8";
+        private static final String SERVEUR_IP = "192.168.100.15";
         private static final int SERVEUR_PORT = 50406;
 
         @Override
-        protected Socket doInBackground(Void... voids) {
+        protected String doInBackground(Void... voids) {
+            user = nomEditText.getText().toString();
+            mdp = motDePasseEditText.getText().toString();
+            EstNouveau = nouveauClientCheckbox.isChecked();
+
+
+
+            Log.d("EtablissementConnection", "Envoi de la requête au serveur");
+
             Socket socket = null;
             try {
                 // Établir la connexion avec le serveur
                 socket = new Socket(SERVEUR_IP, SERVEUR_PORT);
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-            return socket;
+
+            // Ajouter l'instance de Socket au singleton
+            Singleton.getInstance().setSocket(socket);
+            // Construire la requête
+            String requete = "LOGIN#" + user + "#" + mdp + "#" + (EstNouveau ? "1" : "0");
+
+            // Envoyer la requête au serveur
+            TCP tcpClient = new TCP(socket);
+            tcpClient.send(requete.getBytes(), requete.length());
+
+
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            int bytesRead;
+            byte[] data = new byte[1500];
+
+
+
+
+            // Attendre la réponse du serveur
+            byte[] reponseBytes = new byte[1500];
+            bytesRead = tcpClient.receive(Singleton.getInstance().getSocket(), reponseBytes);
+
+            // Convertir la réponse en une chaîne de caractères
+            reponse = new String(reponseBytes, 0, bytesRead);
+            //reponse = new String(reponseBytes, 0, bytesRead, "UTF-8");
+
+
+            Log.d("EtablissementConnection", "Réponse reçue du serveur : " + reponse);
+
+            return reponse;
         }
 
         @Override
-        protected void onPostExecute(Socket result) {
-            // Mettre à jour la variable sockCli de la classe MainActivity avec le résultat du thread
-            sockCli = result;
+        protected void onPostExecute(String reponse) {
 
-            // Planifier la disparition du Toast après 5 secondes
-            new android.os.Handler().postDelayed(
-                    new Runnable() {
-                        public void run() {
-                            Toast.makeText(MainActivity.this, "", Toast.LENGTH_SHORT).cancel();
-                        }
-                    },
-                    5000
-            );
+            String res = OVESP.OVESP(reponse);
 
-            // Une fois la connexion établie, appeler le thread ThConnection
-            new ThConnection().execute(sockCli);
+
+            Log.d("EtablissementConnection", "Valeur de res : " + res);
+
+
+            if (Integer.parseInt(res) != 0) {
+                // Connexion réussie, vous pouvez rediriger vers une autre activité, afficher un message, etc.
+
+                // Lancer le thread ThPremierArticle pour obtenir la réponse du serveur
+               runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        new ThPremierArticle().execute();
+                    }
+                });
+            } else {
+                // Afficher un message d'erreur
+                Toast.makeText(MainActivity.this, "Erreur de connexion", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
-    private class ThConnection extends AsyncTask<Socket, Void, Boolean> {
+    private class ThPremierArticle extends AsyncTask<Void, Void, String> {
+        private String reponse;
 
         @Override
-        protected Boolean doInBackground(Socket... sockets) {
-            // Récupérer la socket passée en paramètre
-            Socket socket = sockets[0];
-
-            // Récupérer les valeurs des champs
-            EditText nomEditText = findViewById(R.id.nomEditText);
-            EditText motDePasseEditText = findViewById(R.id.motDePasseEditText);
-            CheckBox nouveauClientCheckBox = findViewById(R.id.nouveauClientCheckBox);
-
-            String nomUtilisateur = nomEditText.getText().toString();
-            String motDePasse = motDePasseEditText.getText().toString();
-            boolean caseCochee = nouveauClientCheckBox.isChecked();
+        protected String doInBackground(Void... voids) {
+            // Récupérer la socket du singleton
+            Socket socket = Singleton.getInstance().getSocket();
 
             // Construire la requête
-            String requete = "LOGIN#" + nomUtilisateur + "#" + motDePasse + "#" + (caseCochee ? "1" : "0");
+            String requete = "ARTSUIVANT#0";
+
+            Log.d("ThPremierArticle", "Envoi de la requête au serveur");
 
             // Envoyer la requête au serveur
             TCP tcpClient = new TCP(socket);
             tcpClient.send(requete.getBytes(), requete.length());
 
             // Attendre la réponse du serveur
-            byte[] reponse = new byte[TCP.TAILLE_MAX_DATA];
-            int bytesRead = tcpClient.receive(reponse);
+            byte[] reponseBytes = new byte[TCP.TAILLE_MAX_DATA];
+            int bytesRead = tcpClient.receive(Singleton.getInstance().getSocket(), reponseBytes);
 
             // Convertir la réponse en une chaîne de caractères
-            String reponseStr = new String(reponse, 0, bytesRead);
+            reponse = new String(reponseBytes, 0, bytesRead);
 
-            // Appeler OVESP pour traiter la réponse
-            String resultatOVESP = OVESP.OVESP(reponseStr);
+            Log.d("ThPremierArticle", "Réponse reçue du serveur : " + reponse);
 
-            // Retourner vrai ou faux en fonction du résultat d'OVESP
-            return "vrai".equals(resultatOVESP);
+            return reponse;
         }
 
         @Override
-        protected void onPostExecute(Boolean result) {
-            // Mettre à jour la variable estConnecte de la classe MainActivity avec le résultat du thread
-            estConnecte = result;
+        protected void onPostExecute(String reponse) {
+            String resultatOVESP = OVESP.OVESP(reponse);
 
-            // Afficher un Toast en fonction du résultat
-            if (estConnecte) {
-                // Si la connexion est réussie, basculer vers une autre activité
+
+            if ("vrai".equals(resultatOVESP)) {
+                // Changer de vue vers LoginActivity
                 Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                 startActivity(intent);
             } else {
-                // Sinon, afficher un Toast d'erreur de connexion
-                Toast.makeText(MainActivity.this, "Erreur de connexion", Toast.LENGTH_SHORT).show();
+                // Afficher un message d'erreur
+                Toast.makeText(MainActivity.this, "Erreur OVESP", Toast.LENGTH_SHORT).show();
             }
         }
     }
-
-    public static Socket getSockCli() {
-        return sockCli;
-    }
-
 }
+
+

@@ -63,14 +63,51 @@ public class TCP {
      * @param data Tableau de bytes pour stocker les données reçues.
      * @return La taille des données reçues.
      */
-    public int receive(byte[] data) {
-        int bytesRead = 0;
+    public static int receive(Socket socket, byte[] data) {
+        boolean finished = false;
+        int bytesRead;
+        int i = 0;
+
         try {
             InputStream inputStream = socket.getInputStream();
-            bytesRead = inputStream.read(data);
+
+            while (!finished) {
+                bytesRead = inputStream.read();
+
+                if (bytesRead == -1) {
+                    return i;
+                }
+
+                char currentChar = (char) bytesRead;
+
+                if (currentChar == '#') {
+                    bytesRead = inputStream.read();
+
+                    if (bytesRead == -1) {
+                        return i;
+                    }
+
+                    char nextChar = (char) bytesRead;
+
+                    if (nextChar == ')') {
+                        data[i] = '\0'; // Null-terminate the string
+                        finished = true;
+                    } else {
+                        data[i] = (byte) currentChar;
+                        data[i + 1] = (byte) nextChar;
+                        i += 2;
+                    }
+                } else {
+                    data[i] = (byte) currentChar;
+                    i++;
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
+            return -1;
         }
-        return bytesRead;
+
+        return i;
     }
+
 }
