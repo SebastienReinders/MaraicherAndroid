@@ -12,6 +12,8 @@ public class Singleton {
     private float total;
     private int QuDemande = 0;
 
+    private int numLigneTableau = 1;
+
     private Singleton() {
         // Constructeur privé pour éviter l'instanciation directe.
         panier = new Vector<>();
@@ -80,5 +82,15 @@ public class Singleton {
 
     public void setNumArticleEncours(int numArticleEncours) {
         NumArticleEncours = numArticleEncours;
+    }
+
+
+
+    public int getNumLigneTableau() {
+        return numLigneTableau;
+    }
+
+    public void setNumLigneTableau(int numLigneTableau) {
+        this.numLigneTableau = numLigneTableau;
     }
 }

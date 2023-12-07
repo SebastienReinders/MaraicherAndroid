@@ -1,8 +1,11 @@
 package com.example.maraicher;
 
 import android.util.Log;
+import java.util.ArrayList;
+import java.util.Vector;
 
 public class OVESP {
+    public static ArrayList<Articles> nouveauPanier = new ArrayList<>();
 
     public static String OVESP(String requete) {
         // Diviser la requête en parties en utilisant #
@@ -27,6 +30,7 @@ public class OVESP {
                         int numArticleEncours = Integer.parseInt(parties[1]);
                         String nomArticle = parties[2];
                         String imageArticle = parties[3];
+                        imageArticle = imageArticle.toLowerCase();
                         int quantiteArticle = Integer.parseInt(parties[4]);
                         float prixArticle = Float.parseFloat(parties[5]) / 100.0f;  // Diviser par 100 pour obtenir le prix correct
 
@@ -63,7 +67,7 @@ public class OVESP {
                 else // La tu tiens le bon bout
                 {
 
-                    Articles article = new Articles(Singleton.getInstance().getArticleCourant().getNomArticle(),0,Singleton.getInstance().getArticleCourant().getPrixArticle(),Singleton.getInstance().getQuDemande(),"");
+                    Articles article = new Articles(Singleton.getInstance().getArticleCourant().getNomArticle(),Singleton.getInstance().getQuDemande(),Singleton.getInstance().getArticleCourant().getPrixArticle(),Singleton.getInstance().getQuDemande(),"");
 
                     Singleton.getInstance().getPanier().add(article);
 
@@ -75,7 +79,44 @@ public class OVESP {
 
 
                // return "BLABLA";
-            } else
+            }
+            else if ("SUPPOK".equals(premierePartie)) {
+               //     Vector<Articles> nouveauPanier = new Vector<>();
+                   // Singleton.getInstance().setPanier(nouveauPanier);
+                Singleton.getInstance().getPanier().clear();
+                    //ici je recuperer ce qui suit donc le nbre d articles puis les articles (intitule, prix, quantite,
+                    parties = requete.split("#");
+                int qu = 0;
+                float prix = 0;;
+
+                for (int i = 2; i < parties.length; i += 3) {
+
+                    String nom = parties[i];
+                    String stringPrix = parties[i + 1];
+                    String stringQuantite = parties[i + 2];
+                    try {
+                        qu = Integer.parseInt(stringQuantite);
+                    } catch (NumberFormatException e) {
+                        // Gérer l'exception si la chaîne ne peut pas être convertie en float
+
+                    }
+
+
+                    try {
+                         prix = Float.parseFloat(stringPrix)/100.0f;
+                        // Utiliser le nombre entier ici
+                    } catch (NumberFormatException e) {
+                        // Gérer l'exception si la chaîne ne peut pas être convertie en int
+
+                    }
+
+
+                    Articles article = new Articles(nom, qu, prix, qu, "");
+                    Singleton.getInstance().getPanier().add(article);
+                }
+                return "ok";
+            }
+            else
             {
                 return "0";
             }

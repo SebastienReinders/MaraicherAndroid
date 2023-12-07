@@ -123,9 +123,9 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                quArticleTextView = findViewById(R.id.quArticleTextView);
+                quDemandeeEditText = findViewById(R.id.quDemandeeEditText);
 
-                quDemandee = quArticleTextView.getText().toString();
+                quDemandee = quDemandeeEditText.getText().toString();
 
                 try{
                     Singleton.getInstance().setQuDemande(Integer.parseInt(quDemandee));

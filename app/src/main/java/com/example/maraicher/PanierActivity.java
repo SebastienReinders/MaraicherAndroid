@@ -1,36 +1,204 @@
-// MainActivity.java
 package com.example.maraicher;
 
-import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.os.Bundle;
-import android.view.View;
+import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.Gravity;
+
 
 import androidx.appcompat.app.AppCompatActivity;
 
-
-import androidx.appcompat.app.AppCompatActivity;
+import java.net.Socket;
+import java.util.Vector;
 
 public class PanierActivity extends AppCompatActivity {
+    private TextView tot;
+    private TableLayout tableLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_panier);
+
+        tot = findViewById(R.id.totalPan);
+        tableLayout = findViewById(R.id.tableLayoutPanier);
+
+        remplirTableau();
+
+        Button supp = findViewById(R.id.supprimerArticle);
+        supp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new ThSupprimerArticle().execute();
+            }
+        });
+
+
+
+
+        Button vider = findViewById(R.id.viderPanier);
+        vider.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new ThViderPanier().execute();
+            }
+        });
+
+
+
+
+        Button confirmer = findViewById(R.id.confirmerAchat);
+        confirmer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new ThConfirmerAchat().execute();
+            }
+        });
     }
 
-    public void onTableRowClick(View view) {
-        // Récupérez les données de la ligne cliquée ici
-        TextView textViewArticle = view.findViewById(R.id.textViewArticle);
+    private void remplirTableau() {
+        Vector<Articles> articles = Singleton.getInstance().getPanier();
+
+        // Supprimer toutes les lignes sauf la première (les titres des colonnes)
+        if (tableLayout.getChildCount() > 1) {
+           tableLayout.removeViews(1, tableLayout.getChildCount() - 1);
+
+        }
+
+        for (Articles article : articles) {
+            if (article.getPrixArticle() != 0 || article.getQuDemande() != 0)
+                ajouterLigneTableau(article, articles.indexOf(article));
+        }
+
+        // Mettre à jour le total
+        Singleton.getInstance().calculTotal();
+        float totalPanier = Singleton.getInstance().getTotal();
+        String totalApayer = String.valueOf(totalPanier);
+        tot.setText(totalApayer);
+    }
+
+    private void ajouterLigneTableau(Articles article, int rowIndex) {
+        TableRow row = new TableRow(this);
+
+        TextView textViewArticle = new TextView(this);
+        textViewArticle.setText(article.getNomArticle());
+        textViewArticle.setGravity(Gravity.CENTER);
+        row.addView(textViewArticle);
+
+        TextView textViewPrix = new TextView(this);
+        textViewPrix.setText(article.getPrixEnString());
+        textViewPrix.setGravity(Gravity.CENTER);
+        row.addView(textViewPrix);
+
+        TextView textViewQuantite = new TextView(this);
+        textViewQuantite.setText(String.valueOf(article.getQuDemande()));
+        textViewQuantite.setGravity(Gravity.CENTER);
+        row.addView(textViewQuantite);
+
+        row.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onTableRowClick(view, rowIndex);
+            }
+        });
+
+        tableLayout.addView(row);
+    }
+
+    public void onTableRowClick(View view, int rowIndex) {
+        Singleton.getInstance().setNumLigneTableau(rowIndex);
+        TableRow row = (TableRow) view;
+        TextView textViewArticle = (TextView) row.getChildAt(0);
         String article = textViewArticle.getText().toString();
-
-        // Faites quelque chose avec les données récupérées
-        Toast.makeText(this, "Ligne cliquée : " + article, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, article + ", Index: " + rowIndex, Toast.LENGTH_SHORT).show();
     }
 
+    private class ThSupprimerArticle extends AsyncTask<Void, Void, String> {
+        private String reponse;
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            Socket socket = Singleton.getInstance().getSocket();
+            String requete = "SUPPRESSION#" + Singleton.getInstance().getNumLigneTableau();
+            TCP tcpClient = new TCP(socket);
+            tcpClient.send(requete.getBytes(), requete.length());
+            Singleton.getInstance().setNumLigneTableau(-1);
+            byte[] reponseBytes = new byte[TCP.TAILLE_MAX_DATA];
+            int bytesRead = tcpClient.receive(socket, reponseBytes);
+            reponse = new String(reponseBytes, 0, bytesRead);
+            return reponse;
+        }
+
+        @Override
+        protected void onPostExecute(String reponse) {
+            String resultatOVESP = OVESP.OVESP(reponse);
+
+            // Mettre à jour la vue après suppression
+            remplirTableau();
+
+        }
+    }
+
+
+
+
+
+    private class ThViderPanier extends AsyncTask<Void, Void, String> {
+        private String reponse;
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            Socket socket = Singleton.getInstance().getSocket();
+            String requete = "VIDERPANIER";
+            TCP tcpClient = new TCP(socket);
+            tcpClient.send(requete.getBytes(), requete.length());
+            Singleton.getInstance().setNumLigneTableau(-1);
+            byte[] reponseBytes = new byte[TCP.TAILLE_MAX_DATA];
+            int bytesRead = tcpClient.receive(socket, reponseBytes);
+            reponse = new String(reponseBytes, 0, bytesRead);
+            return reponse;
+        }
+
+        @Override
+        protected void onPostExecute(String reponse) {
+
+            // Mettre à jour la vue après suppression
+            Singleton.getInstance().getPanier().clear();
+            remplirTableau();
+
+        }
+    }
+
+
+
+    private class ThConfirmerAchat extends AsyncTask<Void, Void, String> {
+        private String reponse;
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            Socket socket = Singleton.getInstance().getSocket();
+            String requete = "VALIDEPANIER";
+            TCP tcpClient = new TCP(socket);
+            tcpClient.send(requete.getBytes(), requete.length());
+            Singleton.getInstance().setNumLigneTableau(-1);
+            byte[] reponseBytes = new byte[TCP.TAILLE_MAX_DATA];
+            int bytesRead = tcpClient.receive(socket, reponseBytes);
+            reponse = new String(reponseBytes, 0, bytesRead);
+            return reponse;
+        }
+
+        @Override
+        protected void onPostExecute(String reponse) {
+
+            // Mettre à jour la vue après suppression
+            Singleton.getInstance().getPanier().clear();
+            remplirTableau();
+
+        }
+    }
 }

@@ -129,7 +129,7 @@
                     android:textStyle="bold"/>
 
                 <EditText
-                    android:id="@+id/quArticleTextView"
+                        android:id="@+id/quDemandeeEditText"
                     android:layout_width="90dp"
                     android:layout_height="50dp"
                     android:layout_weight="1"
