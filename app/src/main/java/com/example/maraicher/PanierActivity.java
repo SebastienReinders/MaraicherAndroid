@@ -1,5 +1,6 @@
 package com.example.maraicher;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
@@ -40,6 +41,16 @@ public class PanierActivity extends AppCompatActivity {
 
 
 
+        Button logoutBoutton = findViewById(R.id.logoutPanier);
+        logoutBoutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new ThLogout().execute();
+            }
+        });
+
+
+
 
         Button vider = findViewById(R.id.viderPanier);
         vider.setOnClickListener(new View.OnClickListener() {
@@ -59,9 +70,20 @@ public class PanierActivity extends AppCompatActivity {
                 new ThConfirmerAchat().execute();
             }
         });
+
+
+
+        Button retour = findViewById(R.id.retour);
+        retour.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(PanierActivity.this, LoginActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
-    private void remplirTableau() {
+    public void remplirTableau() {
         Vector<Articles> articles = Singleton.getInstance().getPanier();
 
         // Supprimer toutes les lignes sauf la première (les titres des colonnes)
@@ -201,4 +223,34 @@ public class PanierActivity extends AppCompatActivity {
 
         }
     }
+
+
+
+
+    private class ThLogout extends AsyncTask<Void, Void, String> {
+        private String reponse;
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            Socket socket = Singleton.getInstance().getSocket();
+            String requete = "LOGOUT#" + Singleton.getInstance().getNumLigneTableau();
+            TCP tcpClient = new TCP(socket);
+            tcpClient.send(requete.getBytes(), requete.length());
+            Singleton.getInstance().setNumLigneTableau(-1);
+            byte[] reponseBytes = new byte[TCP.TAILLE_MAX_DATA];
+            int bytesRead = tcpClient.receive(socket, reponseBytes);
+            reponse = new String(reponseBytes, 0, bytesRead);
+            return reponse;
+        }
+
+        @Override
+        protected void onPostExecute(String reponse) {
+            Singleton.getInstance().getPanier().clear();
+            //gerer deco retour vers loginpage
+            // Ouvrir la nouvelle activité lors du clic sur le bouton "login"
+            Intent intent = new Intent(PanierActivity.this, MainActivity.class);
+            startActivity(intent);
+        }
+    }
+
 }

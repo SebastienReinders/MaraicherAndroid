@@ -79,6 +79,14 @@ public class LoginActivity extends AppCompatActivity {
         Button panierBoutton = findViewById(R.id.panier);
 
 
+        Button logoutBoutton1 = findViewById(R.id.logoutAchat);
+        logoutBoutton1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new ThLogout1().execute();
+            }
+        });
+
 
 
 
@@ -247,6 +255,34 @@ public class LoginActivity extends AppCompatActivity {
                 // Afficher un message d'erreur
                 Toast.makeText(LoginActivity.this, "ajout panier NON effectué !", Toast.LENGTH_SHORT).show();
             }
+        }
+
+    }
+
+
+    private class ThLogout1 extends AsyncTask<Void, Void, String> {
+        private String reponse;
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            Socket socket = Singleton.getInstance().getSocket();
+            String requete = "LOGOUT#" + Singleton.getInstance().getNumLigneTableau();
+            TCP tcpClient = new TCP(socket);
+            tcpClient.send(requete.getBytes(), requete.length());
+            Singleton.getInstance().setNumLigneTableau(-1);
+            byte[] reponseBytes = new byte[TCP.TAILLE_MAX_DATA];
+            int bytesRead = tcpClient.receive(socket, reponseBytes);
+            reponse = new String(reponseBytes, 0, bytesRead);
+            return reponse;
+        }
+
+        @Override
+        protected void onPostExecute(String reponse) {
+            Singleton.getInstance().getPanier().clear();
+            //gerer deco retour vers loginpage
+            // Ouvrir la nouvelle activité lors du clic sur le bouton "login"
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            startActivity(intent);
         }
     }
 }

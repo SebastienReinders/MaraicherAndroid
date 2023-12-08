@@ -137,20 +137,49 @@
                 android:layout_width="match_parent"
                 android:layout_height="60dp"/>
 
-            <FrameLayout
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2">
 
-                <Button
-                    android:id="@+id/logout"
-                    android:layout_width="wrap_content"
+                <FrameLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="logout"
-                    android:background="#00FF00"
-                    android:textColor="#FFFFFF"
-                    android:layout_gravity="end|top"
-                    android:layout_marginTop="16dp"/>
-            </FrameLayout>
+                    android:layout_weight="1">
+
+                    <Button
+                        android:id="@+id/retour"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="retour"
+                        android:background="#00FF00"
+                        android:textColor="#FFFFFF"
+                        android:layout_gravity="start|top"
+                        android:layout_marginTop="16dp"/>
+                </FrameLayout>
+
+                <Space
+                    android:layout_width="20dp"
+                    android:layout_height="match_parent"/>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <Button
+                        android:id="@+id/logoutPanier"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="logout"
+                        android:background="#00FF00"
+                        android:textColor="#FFFFFF"
+                        android:layout_gravity="end|top"
+                        android:layout_marginTop="16dp"/>
+                </FrameLayout>
+            </LinearLayout>
+
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
