@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.EditText;
 import android.util.*;
@@ -22,25 +23,72 @@ public class MainActivity extends AppCompatActivity {
     private EditText nomEditText;
     private EditText motDePasseEditText;
     private CheckBox nouveauClientCheckbox;
+    private TextView nomTextView;
+    private TextView mdpTextView;
+
+    private TextView nouveau;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Singleton.getInstance().setLangue(false);
+
+
+
 
         Log.d("MainActivity", "onCreate executed");
 
+        nomTextView = findViewById(R.id.nomTextView);
+        mdpTextView = findViewById(R.id.mdpTextView);
         nomEditText = findViewById(R.id.nomEditText);
+        nouveau = findViewById(R.id.nouveau);
         motDePasseEditText = findViewById(R.id.motDePasseEditText);
         nouveauClientCheckbox = findViewById(R.id.nouveauClientCheckBox);
         Button loginButton = findViewById(R.id.loginButton);
+        Button langueButton = findViewById(R.id.langueButton);
+
 
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // Lors d'un clic sur le bouton login, établir la connexion avec le serveur
                 new EtablissementConnection().execute();
+            }
+        });
+
+        langueButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Lors d'un clic sur le bouton langue, ca on inverse l état simplement de la variable langue du singleton
+                // et mettre a jour les champs textes concernés
+
+                if(Singleton.getInstance().getLangue() == false)
+                {
+                    //EN
+                    Singleton.getInstance().setLangue(true);
+                    nomTextView.setText("User : ");
+                    mdpTextView.setText("Password : ");
+                    nomEditText.setHint("Enter your name");
+                    motDePasseEditText.setHint("Enter your password");
+                    nouveau.setText("New client");
+
+                }
+                else
+                {
+                    //FR
+                    Singleton.getInstance().setLangue(false);
+                    nomTextView.setText("Nom : ");
+                    mdpTextView.setText("Mot de passe : ");
+                    nomEditText.setHint("Entrez votre nom");
+                    motDePasseEditText.setHint("Entrez votre mot de passe");
+                    nouveau.setText("Nouveau client");
+                }
+
+
+
+
             }
         });
     }

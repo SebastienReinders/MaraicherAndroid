@@ -29,11 +29,77 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText quDemandeeEditText;
 
+    private TextView mag;
+
+    private TextView art;
+
+    private TextView prx;
+
+    private TextView stck;
+
+    private TextView qte;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+
+
+
+        mag = findViewById(R.id.magasin);
+        art = findViewById(R.id.art);
+        prx = findViewById(R.id.prix);
+        stck = findViewById(R.id.stck);
+        qte = findViewById(R.id.qte);
+
+
+
+        Button suivant = findViewById(R.id.Bouttonsuivant);
+        Button precedant = findViewById(R.id.Bouttonprecedant);
+        Button achat = findViewById(R.id.Bouttonacheter);
+
+        Button panierBoutton = findViewById(R.id.panier);
+
+
+        Button logoutBoutton1 = findViewById(R.id.logoutAchat);
+
+
+        //Toast.makeText(LoginActivity.this, Singleton.getInstance().langue, Toast.LENGTH_SHORT).show();
+
+
+        if(Singleton.getInstance().getLangue() == false)
+        {
+            //EN
+            mag.setText("Magasin");
+            art.setText("article : ");
+            prx.setText("prix à l'unité : ");
+            stck.setText("stock : ");
+            qte.setText("quantité souhaitée : ");
+            suivant.setText("suivant");
+            precedant.setText("precedant");
+            achat.setText("acheter");
+            panierBoutton.setText("panier");
+
+
+
+        }
+        else
+        {
+            //FR
+            mag.setText("Store");
+            art.setText("item : ");
+            prx.setText("unit price : ");
+            stck.setText("stock");
+            qte.setText("desired quantity : ");
+            suivant.setText("next");
+            precedant.setText("previous");
+            achat.setText("buy");
+            panierBoutton.setText("basket");
+        }
+
+
 
 
          imageView = findViewById(R.id.imageViewArticle);
@@ -72,14 +138,6 @@ public class LoginActivity extends AppCompatActivity {
 
 
 
-        Button suivant = findViewById(R.id.Bouttonsuivant);
-        Button precedant = findViewById(R.id.Bouttonprecedant);
-        Button achat = findViewById(R.id.Bouttonacheter);
-
-        Button panierBoutton = findViewById(R.id.panier);
-
-
-        Button logoutBoutton1 = findViewById(R.id.logoutAchat);
         logoutBoutton1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -146,7 +204,7 @@ public class LoginActivity extends AppCompatActivity {
                 }
                 else
                 {
-                Toast.makeText(LoginActivity.this, "Met un chiffffffffre ", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, "Met un chiffffffffre ", Toast.LENGTH_SHORT).show();
                 }
 
             }

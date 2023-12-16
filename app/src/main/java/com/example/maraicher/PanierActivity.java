@@ -21,17 +21,69 @@ public class PanierActivity extends AppCompatActivity {
     private TextView tot;
     private TableLayout tableLayout;
 
+    private TextView pan;
+
+    private TextView artTab;
+
+    private TextView prxTab;
+
+    private TextView qteTab;
+
+
+    private TextView tot2;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_panier);
+
+        pan = findViewById(R.id.pan);
+        artTab = findViewById(R.id.artTab);
+        prxTab = findViewById(R.id.prxTab);
+        qteTab = findViewById(R.id.qtetab);
+        tot2 = findViewById(R.id.tot2);
+        Button supp = findViewById(R.id.supprimerArticle);
+        Button vider = findViewById(R.id.viderPanier);
+        Button confirmer = findViewById(R.id.confirmerAchat);
+        Button retour = findViewById(R.id.retour);
+
+
+        //si langue choisie = francais
+
+        if(Singleton.getInstance().getLangue() == false)
+        {
+            pan.setText("panier");
+            artTab.setText("Articles");
+            prxTab.setText("Prix à l'unité");
+            qteTab.setText("Quantité");
+            tot2.setText("total à payer : ");
+            supp.setText("supprimer article");
+            vider.setText("vider panier");
+            confirmer.setText("confirmer achat");
+            retour.setText("retour");
+
+        }
+        //si langue choisie = anglais
+
+        else
+        {
+            pan.setText("basket");
+            artTab.setText("Items");
+            prxTab.setText("Unit price");
+            qteTab.setText("Quantities");
+            tot2.setText("total to pay : ");
+            supp.setText("delete item");
+            vider.setText("clear basket");
+            confirmer.setText("confirm purchase");
+            retour.setText("back");
+        }
 
         tot = findViewById(R.id.totalPan);
         tableLayout = findViewById(R.id.tableLayoutPanier);
 
         remplirTableau();
 
-        Button supp = findViewById(R.id.supprimerArticle);
+
         supp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -52,7 +104,7 @@ public class PanierActivity extends AppCompatActivity {
 
 
 
-        Button vider = findViewById(R.id.viderPanier);
+
         vider.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -63,7 +115,7 @@ public class PanierActivity extends AppCompatActivity {
 
 
 
-        Button confirmer = findViewById(R.id.confirmerAchat);
+
         confirmer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -73,7 +125,7 @@ public class PanierActivity extends AppCompatActivity {
 
 
 
-        Button retour = findViewById(R.id.retour);
+
         retour.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

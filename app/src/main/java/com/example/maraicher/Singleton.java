@@ -14,6 +14,10 @@ public class Singleton {
 
     private int numLigneTableau = 1;
 
+    //0 = fr; 1 = en
+
+    public boolean langue = false;
+
     private Singleton() {
         // Constructeur privé pour éviter l'instanciation directe.
         panier = new Vector<>();
@@ -93,4 +97,15 @@ public class Singleton {
     public void setNumLigneTableau(int numLigneTableau) {
         this.numLigneTableau = numLigneTableau;
     }
+
+    public boolean getLangue()
+    {
+        return langue;
+    }
+
+    public void setLangue(boolean lg)
+    {
+        langue = lg;
+    }
+
 }
